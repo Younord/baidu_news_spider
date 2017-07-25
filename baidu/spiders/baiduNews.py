@@ -76,6 +76,7 @@ class BaidunewsSpider(scrapy.Spider):
         json_res = json.loads(response.body_as_unicode())['data']
         for news in json_res.get('list'):
             item = BaiduLoader(item=BaiduItem())
+            # 只爬取最近7天的新闻
             if timestamp - news.get('publicTime') > 7*24*3600:
                 return None
             item.add_value('post_time',
