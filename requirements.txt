@@ -1,0 +1,4 @@
+scrapyelasticsearch
+elasticsearch
+pymongo
+scrapy
