@@ -15,7 +15,7 @@ from scrapy_dupefilter_util import DUPEFILTER_PIPELINE_CONFIG, REQUEST_DUPEFILTE
 class BaidunewsSpider(scrapy.Spider):
     name = 'baiduNews'
     allowed_domains = ['news.baidu.com']
-    item = {'item': BaiduItem, 'collection': 'hzds_brands_article'}
+    item = {'item': BaiduItem, 'collection': '1013_maigoo_brands_article'}
     custom_settings = {
         'ITEM_PIPELINES': {
             # "baidu.pipelines.BaiduPipeline": 500,
@@ -34,11 +34,22 @@ class BaidunewsSpider(scrapy.Spider):
         'MONGO_URI': '10.214.224.142:20000',
         'MONGO_DATABASE': 'crawler-baidunews',
         'DUPEFILTER_CLASS': "scrapy_dupefilter_util.ItemRequestDupeFilter",
-        DUPEFILTER_PIPELINE_CONFIG: {'items': [{'item': BaiduItem, 'collection': 'hzds_brands_article'}]},
-        REQUEST_DUPEFILTER_CONFIG: {'items': [{'item': BaiduItem, 'collection': 'hzds_brands_article'}]},
+        DUPEFILTER_PIPELINE_CONFIG: {'items': [{'item': BaiduItem, 'collection': '1013_maigoo_brands_article'}]},
+        REQUEST_DUPEFILTER_CONFIG: {'items': [{'item': BaiduItem, 'collection': '1013_maigoo_brands_article'}]},
     }
 
-    def get_brands(self, separator):
+    def get_maigoo_brands(self):
+        import pymongo
+
+        con = pymongo.MongoClient("10.214.224.142", 20000)
+        db = con['kg_alpha']
+        collection = db['brand']
+        brand_list = []
+        for obj in collection.find({}):
+            brand_list.append(obj['name'])
+        return brand_list
+
+    def get_hzds_brands(self, separator):
         import pymongo
         con = pymongo.MongoClient("10.214.224.142", 20000)
         db = con['hzds']
@@ -58,9 +69,10 @@ class BaidunewsSpider(scrapy.Spider):
         #          "Prada 普拉达", "FENDI 芬迪", "倩碧 CLINIQUE", "SK-II", "玉兰油 OLAY",
         #          "兰芝 LANEIGE", "雪花秀 Sulwhasoo", "MCM", "纪梵希 Givenchy", "珑镶 LONGCHAMP",
         #          ]
-        words = self.get_brands(',')
+        # words = self.get_hzds_brands(',')
         # words = ['奥迪,Audi']
-        # words = ['迪奥']
+        # words = ['苹果,iPhone']
+        words = self.get_maigoo_brands()
         for word in words:
             # for ct in 0, 1:
             search_word = word.replace(',', ' ')
@@ -164,6 +176,7 @@ def timming_exe(inc):
     schedule.enter(0, 0, perform_command, (inc,))
     # 持续运行，直到计划时间队列变成空为止
     schedule.run()
+
 
 if __name__ == '__main__':
     # timming_exe(86400)
